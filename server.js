@@ -27,7 +27,7 @@ app.configure("production", (function() {
 
 app.get("/", (function(req, res) {
   // req:required res:required
-  return res.send("Hello World");
+  return res.send("Hello Express");
 }));
 
 app.listen(8888);

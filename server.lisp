@@ -15,6 +15,6 @@
 (app.configure 'production (lambda ()
     (app.use (express.error-handler))))
 
-(app.get "/" (lambda (req res) (res.send "Hello World")))
+(app.get "/" (lambda (req res) (res.send "Hello Express")))
 
 (app.listen 8888)
