@@ -1,0 +1,3 @@
+#!/bin/bash
+sibilant server.lisp > server.js
+sibilant client.lisp > public/js/client.js
