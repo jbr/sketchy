@@ -14,76 +14,69 @@ var browse = (function(url, from) {
   }));
 });
 
+var cursors = {  };
 jQuery((function(jq) {
   // jq:required
-  var url = window.location.search.replace(/^\?/, "");;
-  (function() {
-    if ((typeof(url) !== "undefined" && (!(url === "")))) {
-      return jq("input[type=text]").val(url);
-    };
-  })();
   socket.on("message", (function(message) {
     // message:required
     var message = JSON.parse(message);;
     var fn = (remoteCallableFunctions)[message.fn];;
     var args = (message)["args"];;
-    console.log(args);
     return (function() {
       if ((typeof(args) !== "undefined" && (args) && (args).constructor.name === "Array" && typeof(fn) !== "undefined")) {
         return fn.apply(undefined, args);
       };
     })();
   }));
-  var text = (function(text) {
-    // text:required
-    return jq("<li/>") // chain
-      .prependTo("ul")
-      .html(text)
-    ;
-  });
-  (remoteCallableFunctions)["text"] = text;;
-  var link = (function(from, to) {
-    // from:required to:required
-    return text((from + " &rarr; " + to));
-  });
-  (remoteCallableFunctions)["link"] = link;;
-  jq("input[type=text]") // chain
-    .change((function(evt) {
+  var canvas = jq("canvas");;
+  var context = jq("canvas") // chain
+    .get(0)
+    .getContext("2d")
+  ;;
+  var body = jq(document.body);;
+  body // chain
+    .mousemove((function(evt) {
       // evt:required
-      jq("ul").empty();
       return socket.send(JSON.stringify({
-        fn: "browse",
-        args: [ jq(this).val() ]
+        fn: "mouseMove",
+        args: [ evt.clientX, evt.clientY ]
       }));
     }))
-    .focus()
-    .change()
-  ;
-  jq("form") // chain
-    .submit((function() {
-      if (arguments.length > 0)
-        throw new Error("argument count mismatch: expected no arguments");
-      
-      jq("input[type=text]").change();
-      return false;
-    }))
-  ;
-  var canvas = jq("canvas");;
-  jq(window) // chain
     .resize((function(evt) {
       // evt:required
-      return canvas // chain
-        .width(jq(document.body).width())
-        .height(jq(document.body).height())
-        .resize()
-      ;
+      canvas.attr("width", body.width());
+      return canvas.attr("height", body.height());
     }))
-    .resize()
   ;
-  return jq("input[type=button]").click((function(evt) {
-    // evt:required
-    return jq("input[type=text]").change();
-  }));
+  var draw = (function() {
+    if (arguments.length > 0)
+      throw new Error("argument count mismatch: expected no arguments");
+    
+    body.resize();
+    context.clearRect(0, 0, canvas.width(), canvas.height());
+    return Object.keys(cursors).forEach((function(key) {
+      // key:required
+      var cursor = (cursors)[key];;
+      context.beginPath();
+      (context)["strokeStyle"] = "black";;
+      context.arc((cursor)[0], (cursor)[1], 20, 0, (2 * (Math)["PI"]), false);
+      return context.stroke();
+    }));
+  });
+  ;
+  var remove = (function(id) {
+    // id:required
+    console.log(id);
+    return delete (cursors)[id];
+  });
+  (remoteCallableFunctions)["remove"] = remove;;
+  var cursorAt = (function(id, x, y) {
+    // id:required x:required y:required
+    (cursors)[id] = [ x, y ];;
+    return draw();
+  });
+  (remoteCallableFunctions)["cursorAt"] = cursorAt;;
+  return draw();
 }));
 
 

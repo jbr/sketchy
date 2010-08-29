@@ -7,56 +7,51 @@
 
 (defvar remote-callable-functions (hash))
 (defun browse (url from) (remote browse url from))
+(defvar cursors (hash))
 
 
 (j-query (lambda (jq)
-	   (defvar url (window.location.search.replace /^\?/ ""))
-	   (when (and (defined? url) (not (= url "")))
-	     (send (jq "input[type=text]") val url))
-
 	   (socket.on 'message
 		      (lambda (message)
 			(defvar message (json parse message))
 			(defvar fn (get remote-callable-functions message.fn))
 			(defvar args (get message 'args))
-			(console.log args)
 
 			(when (and (defined? args)
 				   (array? args)
 				   (defined? fn))
 			  (apply fn args))))
 
-	   (defremote text (text)
-	     (chain (jq "<li/>")
-		    (prepend-to 'ul)
-		    (html text)))
-
-	   (defremote link (from to)
-	     (text (concat from " &rarr; " to)))
-
-	   (chain (jq "input[type=text]")
-		  (change
-		   (lambda (evt)
-		     (send (jq 'ul) empty)
-		     (remote browse (send (jq this) val))))
-		  (focus)
-		  (change))
-
-	   (chain (jq 'form)
-		  (submit (lambda ()
-			    (send (jq "input[type=text]") change)
-			    false)))
-
 	   (defvar canvas (jq 'canvas))
-	   
-	   (chain (jq window)
+	   (defvar context (chain (jq 'canvas) (get 0) (get-context "2d")))
+	   (defvar body (jq document.body))
+
+	   (chain body
+		  (mousemove (lambda (evt)
+			       (remote mouse-move evt.client-x evt.client-y)))
+
 		  (resize (lambda (evt)
-			    (chain canvas
-				   (width (send (jq document.body) width))
-				   (height (send (jq document.body) height))
-				   (resize))))
-		  (resize))
+			    (send canvas attr 'width (body.width))
+			    (send canvas attr 'height (body.height)))))
 
+	   (defun draw ()
+	     (body.resize)
+	     (context.clear-rect 0 0 (canvas.width) (canvas.height))
+	     (send (keys cursors) for-each
+	      (lambda (key)
+		(defvar cursor (get cursors key))
+		(context.begin-path)
+		(set context 'stroke-style 'black)
+		(context.arc (first cursor) (second cursor)
+			     20 0 (* 2 (get -math "PI")) false)
+		(context.stroke))))
 
-	   (send (jq "input[type=button]") click
-		 (lambda (evt) (send (jq "input[type=text]") change)))))
+	   (defremote remove (id)
+	     (console.log id)
+	     (delete (get cursors id)))
+
+	   (defremote cursor-at (id x y)
+	     (set cursors id (list x y))
+	     (draw))
+	   (draw)))
+

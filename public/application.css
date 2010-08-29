@@ -4,15 +4,21 @@ html {
   margin: 0;
   background: white;
   background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #c8e6e6), color-stop(1, white));
-  background-image: -moz-linear-gradient(center bottom, #e6e6e6 0%, white 100%);
-  overflow: hidden; }
+  background-image: -moz-linear-gradient(center top, #c8e6e6 0%, white 100%);
+  overflow: hidden;
+  cursor: none; }
 
 body {
-  margin: 50px;
+  cursor: none;
+  margin: 0;
   padding: 0;
   height: 100%;
   overflow: hidden; }
 
-ul {
-  max-height: 400px;
-  overflow: auto; }
+canvas {
+  cursor: none;
+  padding: 0;
+  margin: 0;
+  top: 0;
+  left: 0;
+  position: absolute; }

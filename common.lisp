@@ -1,3 +1,9 @@
+(defmacro keys (obj)
+  (macros.call "Object.keys" (translate obj)))
+
+(defmacro delete (obj) (concat "delete " (translate obj)))
+
+
 (defmacro default (varname value)
   (macros.defvar (translate varname)
 		 (macros.or (translate varname) (translate value))))
