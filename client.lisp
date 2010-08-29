@@ -22,18 +22,16 @@
 (defremote text (text)
   (chain (jq "<li/>")
 	 (prepend-to 'ul)
-	 (text text))
-  (chain (jq "li")
-	 (slice 10)
-	 (remove)))
+	 (text text)))
 
-
-(chain (jq "input")
-      (keyup (lambda (evt)
-	      (remote browse
-		      (send (jq this) val))
-	      true))
+(chain (jq "input[type=text]")
+      (change
+       (lambda (evt)
+	 (send (jq 'ul) empty)
+	 (remote browse (send (jq this) val))))
       (focus))
 
+(send (jq "input[type=button]") click
+      (lambda (evt) (send (jq "input[type=text]") change)))
 
 ))

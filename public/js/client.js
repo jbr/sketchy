@@ -21,27 +21,27 @@ jQuery((function(jq) {
   }));
   var text = (function(text) {
     // text:required
-    jq("<li/>") // chain
+    return jq("<li/>") // chain
       .prependTo("ul")
       .text(text)
     ;
-    return jq("li") // chain
-      .slice(10)
-      .remove()
-    ;
   });
   (remoteCallableFunctions)["text"] = text;;
-  return jq("input") // chain
-    .keyup((function(evt) {
+  jq("input[type=text]") // chain
+    .change((function(evt) {
       // evt:required
-      socket.send(JSON.stringify({
+      jq("ul").empty();
+      return socket.send(JSON.stringify({
         fn: "browse",
         args: [ jq(this).val() ]
       }));
-      return true;
     }))
     .focus()
   ;
+  return jq("input[type=button]").click((function(evt) {
+    // evt:required
+    return jq("input[type=text]").change();
+  }));
 }));
 
 

@@ -1,3 +1,7 @@
+(defmacro default (varname value)
+  (macros.defvar (translate varname)
+		 (macros.or (translate varname) (translate value))))
+
 (defmacro json (fn &rest args)
   (concat "JSON." (translate fn) "("
 	  (join ", " (map args translate)) ")"))

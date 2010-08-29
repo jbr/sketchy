@@ -4,9 +4,15 @@ html {
   margin: 0;
   background: white;
   background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #c8e6e6), color-stop(1, white));
-  background-image: -moz-linear-gradient(center bottom, #e6e6e6 0%, white 100%); }
+  background-image: -moz-linear-gradient(center bottom, #e6e6e6 0%, white 100%);
+  overflow: hidden; }
 
 body {
   margin: 50px;
   padding: 0;
-  height: 100%; }
+  height: 100%;
+  overflow: hidden; }
+
+ul {
+  max-height: 400px;
+  overflow: auto; }

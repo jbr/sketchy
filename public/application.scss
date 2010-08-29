@@ -11,10 +11,17 @@ html {
      background-image: -moz-linear-gradient(center bottom,
                                             rgb(230,230,230) 0%,
                                             rgb(255,255,255) 100%);
-
+     overflow: hidden;				    
 }
+
 body {
      margin: 50px;
      padding: 0;
      height: 100%;
+     overflow: hidden;
+}
+
+ul {
+   max-height: 400px;
+   overflow: auto;
 }
