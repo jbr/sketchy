@@ -45,6 +45,18 @@ jQuery((function(jq) {
     .focus()
     .change()
   ;
+  var canvas = jq("canvas");;
+  jq(window) // chain
+    .resize((function(evt) {
+      // evt:required
+      return canvas // chain
+        .width(jq(document.body).width())
+        .height(jq(document.body).height())
+        .resize()
+      ;
+    }))
+    .resize()
+  ;
   return jq("input[type=button]").click((function(evt) {
     // evt:required
     return jq("input[type=text]").change();
