@@ -59,8 +59,26 @@ jQuery((function(jq) {
       var cursor = (cursors)[key];;
       context.beginPath();
       (context)["strokeStyle"] = "black";;
-      context.arc((cursor)[0], (cursor)[1], 20, 0, (2 * (Math)["PI"]), false);
-      return context.stroke();
+      (context)["lineWidth"] = 1;;
+      (context)["lineCap"] = "round";;
+      context.arc((cursor)[0], (cursor)[1], 10, 0, (2 * (Math)["PI"]), false);
+      context.stroke();
+      return Object.keys(cursors).forEach((function(key) {
+        // key:required
+        var otherCursor = (cursors)[key];;
+        return (function() {
+          if ((cursor !== otherCursor)) {
+            context.beginPath();
+            var distance = Math.sqrt((Math.pow(((cursor)[0] - (otherCursor)[0]), 2) + Math.pow(((cursor)[1] - (otherCursor)[1]), 2)));;
+            var strength = Math.min(1, (1 - (distance / 300)));;
+            (context)["strokeStyle"] = ("rgba(0,0,0," + strength + ")");;
+            (context)["lineWidth"] = (10 * strength);;
+            context.moveTo((cursor)[0], (cursor)[1]);
+            context.lineTo((otherCursor)[0], (otherCursor)[1]);
+            return context.stroke();
+          };
+        })();
+      }));
     }));
   });
   ;
