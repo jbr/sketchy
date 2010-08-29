@@ -13,6 +13,7 @@ jQuery((function(jq) {
     var message = JSON.parse(message);;
     var fn = (remoteCallableFunctions)[message.fn];;
     var args = (message)["args"];;
+    console.log(args);
     return (function() {
       if ((typeof(args) !== "undefined" && (args) && (args).constructor.name === "Array" && typeof(fn) !== "undefined")) {
         return fn.apply(undefined, args);
@@ -23,10 +24,15 @@ jQuery((function(jq) {
     // text:required
     return jq("<li/>") // chain
       .prependTo("ul")
-      .text(text)
+      .html(text)
     ;
   });
   (remoteCallableFunctions)["text"] = text;;
+  var link = (function(from, to) {
+    // from:required to:required
+    return text((from + " &rarr; " + to));
+  });
+  (remoteCallableFunctions)["link"] = link;;
   jq("input[type=text]") // chain
     .change((function(evt) {
       // evt:required
@@ -37,6 +43,7 @@ jQuery((function(jq) {
       }));
     }))
     .focus()
+    .change()
   ;
   return jq("input[type=button]").click((function(evt) {
     // evt:required

@@ -14,6 +14,8 @@
 	     (defvar message (json parse message))
 	     (defvar fn (get remote-callable-functions message.fn))
 	     (defvar args (get message 'args))
+	       (console.log args)
+
 	     (when (and (defined? args)
 			(array? args)
 			(defined? fn))
@@ -22,14 +24,18 @@
 (defremote text (text)
   (chain (jq "<li/>")
 	 (prepend-to 'ul)
-	 (text text)))
+	 (html text)))
+
+(defremote link (from to)
+  (text (concat from " &rarr; " to)))
 
 (chain (jq "input[type=text]")
       (change
        (lambda (evt)
 	 (send (jq 'ul) empty)
 	 (remote browse (send (jq this) val))))
-      (focus))
+      (focus)
+      (change))
 
 (send (jq "input[type=button]") click
       (lambda (evt) (send (jq "input[type=text]") change)))
