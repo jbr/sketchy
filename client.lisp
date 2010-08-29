@@ -6,8 +6,14 @@
 (socket.connect)
 
 (defvar remote-callable-functions (hash))
+(defun browse (url from) (remote browse url from))
+
 
 (j-query (lambda (jq)
+	   (defvar url (window.location.search.replace /^\?/ ""))
+	   (when (and (defined? url) (not (= url "")))
+	     (send (jq "input[type=text]") val url))
+
 	   (socket.on 'message
 		      (lambda (message)
 			(defvar message (json parse message))
@@ -35,6 +41,11 @@
 		     (remote browse (send (jq this) val))))
 		  (focus)
 		  (change))
+
+	   (chain (jq 'form)
+		  (submit (lambda ()
+			    (send (jq "input[type=text]") change)
+			    false)))
 
 	   (defvar canvas (jq 'canvas))
 	   

@@ -6,8 +6,22 @@ var socket = (new io.Socket(null, { port: 8888 }));
 socket.connect();
 
 var remoteCallableFunctions = {  };
+var browse = (function(url, from) {
+  // url:required from:required
+  return socket.send(JSON.stringify({
+    fn: "browse",
+    args: [ url, from ]
+  }));
+});
+
 jQuery((function(jq) {
   // jq:required
+  var url = window.location.search.replace(/^\?/, "");;
+  (function() {
+    if ((typeof(url) !== "undefined" && (!(url === "")))) {
+      return jq("input[type=text]").val(url);
+    };
+  })();
   socket.on("message", (function(message) {
     // message:required
     var message = JSON.parse(message);;
@@ -44,6 +58,15 @@ jQuery((function(jq) {
     }))
     .focus()
     .change()
+  ;
+  jq("form") // chain
+    .submit((function() {
+      if (arguments.length > 0)
+        throw new Error("argument count mismatch: expected no arguments");
+      
+      jq("input[type=text]").change();
+      return false;
+    }))
   ;
   var canvas = jq("canvas");;
   jq(window) // chain

@@ -3,7 +3,7 @@
 (defvar connect  (require 'connect))
 (defvar express  (require 'express))
 (defvar request  (require "./node-utils/request/lib/main"))
-(defvar libxml   (require 'libxmljs))
+(defvar xml      (require "./node-xml/lib/node-xml"))
 (defvar url-util (require 'url))
 (defvar redis    (send (require "./redis-node-client/lib/redis-client")
 		       create-client))
@@ -53,16 +53,19 @@
   hash)
 
 (defun link-parser (link-callback)
-  (new (libxml.-sax-push-parser
+  (new (xml.-sax-parser
 	(lambda (cb)
+	  (cb.on-error (lambda (err) (console.log (concat "*--" err))))
 	  (cb.on-start-element-n-s
 	   (lambda (elem attrs)
-	     (when (= 'a elem)
+	     (console.log elem attrs)
+	     (when false
+	       (console.log elem)
 	       (defvar href (get (attrs-as-hash attrs) 'href))
 	       (when href (link-callback href)))))))))
 
 
-(defun process-link (socket url href from)
+(defun process-link (socket url href)
   (defvar href href)
   (when (not (href.match /^javascript:/))
     (when (not (href.match /^https?:\/\//))
@@ -71,27 +74,26 @@
     (remote link url href)
     (redis.sadd url href)))
 
-(defun get-and-process (socket url from)
+(defun get-and-process (socket url)
   (defvar parser
-    (link-parser (lambda (link) (process-link socket url link from))))
+    (link-parser (lambda (link)
+		   (process-link socket url link))))
 
   (request (hash uri url
 		 data-callback (lambda (chunk)
-				 (parser.push (chunk.to-string))))))
+				 (parser.parse-string (chunk.to-string))))))
 
-(defremote browse (socket url from)
-  (console.log (join " " (list socket.session-id url)))
+(defremote browse (socket url)
   (when socket.connected
-    (when (defined? from)
-      (redis.sismember socket.session-id
-       (lambda (err already-visited)
-	 (when (not already-visited)
-	   (redis.sadd socket.session-id url)
-	   (redis.smembers url (lambda (err urls)
-             (if urls (urls.for-each (lambda (to) (browse socket url to)))
-	       (get-and-process socket url from))))))))
-    (when (undefined? from)
-      (console.log "clearing" socket.session-id)
-      (redis.del socket.session-id (lambda (err)
-        (get-and-process socket url from))))))
+    (redis.sismember
+     socket.session-id url
+     (lambda (err already-visited)
+       (when (not already-visited)
+	 (redis.sadd socket.session-id url)
+	 (redis.smembers
+	  url (lambda (err urls)
+		(if urls
+		    (urls.for-each (lambda (to)
+				     (remote link url (to.to-string))))
+		  (get-and-process socket url)))))))))
 

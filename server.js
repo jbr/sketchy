@@ -4,7 +4,7 @@ var io = require("socket.io");
 var connect = require("connect");
 var express = require("express");
 var request = require("./node-utils/request/lib/main");
-var libxml = require("libxmljs");
+var xml = require("./node-xml/lib/node-xml");
 var urlUtil = require("url");
 var redis = require("./redis-node-client/lib/redis-client").createClient();
 var app = express.createServer();
@@ -76,12 +76,18 @@ var attrsAsHash = (function(attrs) {
 
 var linkParser = (function(linkCallback) {
   // link-callback:required
-  return (new libxml.SaxPushParser((function(cb) {
+  return (new xml.SaxParser((function(cb) {
     // cb:required
+    cb.onError((function(err) {
+      // err:required
+      return console.log(("*--" + err));
+    }));
     return cb.onStartElementNS((function(elem, attrs) {
       // elem:required attrs:required
+      console.log(elem, attrs);
       return (function() {
-        if (("a" === elem)) {
+        if (false) {
+          console.log(elem);
           var href = (attrsAsHash(attrs))["href"];;
           return (function() {
             if (href) {
@@ -94,8 +100,8 @@ var linkParser = (function(linkCallback) {
   })));
 });
 
-var processLink = (function(socket, url, href, from) {
-  // socket:required url:required href:required from:required
+var processLink = (function(socket, url, href) {
+  // socket:required url:required href:required
   var href = href;;
   return (function() {
     if ((!href.match(/^javascript:/))) {
@@ -114,60 +120,49 @@ var processLink = (function(socket, url, href, from) {
   })();
 });
 
-var getAndProcess = (function(socket, url, from) {
-  // socket:required url:required from:required
+var getAndProcess = (function(socket, url) {
+  // socket:required url:required
   var parser = linkParser((function(link) {
     // link:required
-    return processLink(socket, url, link, from);
+    return processLink(socket, url, link);
   }));;
   return request({
     uri: url,
     dataCallback: (function(chunk) {
       // chunk:required
-      return parser.push(chunk.toString());
+      return parser.parseString(chunk.toString());
     })
   });
 });
 
-var browse = (function(socket, url, from) {
-  // socket:required url:required from:required
-  console.log(([ socket.sessionId, url ]).join(" "));
+var browse = (function(socket, url) {
+  // socket:required url:required
   return (function() {
     if (socket.connected) {
-      (function() {
-        if (typeof(from) !== "undefined") {
-          return redis.sismember(socket.sessionId, (function(err, alreadyVisited) {
-            // err:required already-visited:required
-            return (function() {
-              if ((!alreadyVisited)) {
-                redis.sadd(socket.sessionId, url);
-                return redis.smembers(url, (function(err, urls) {
-                  // err:required urls:required
-                  return (function() {
-                    if (urls) {
-                      return urls.forEach((function(to) {
-                        // to:required
-                        return browse(socket, url, to);
-                      }));
-                    } else {
-                      return getAndProcess(socket, url, from);
-                    };
-                  })();
-                }));
-              };
-            })();
-          }));
-        };
-      })();
-      return (function() {
-        if (typeof(from) === "undefined") {
-          console.log("clearing", socket.sessionId);
-          return redis.del(socket.sessionId, (function(err) {
-            // err:required
-            return getAndProcess(socket, url, from);
-          }));
-        };
-      })();
+      return redis.sismember(socket.sessionId, url, (function(err, alreadyVisited) {
+        // err:required already-visited:required
+        return (function() {
+          if ((!alreadyVisited)) {
+            redis.sadd(socket.sessionId, url);
+            return redis.smembers(url, (function(err, urls) {
+              // err:required urls:required
+              return (function() {
+                if (urls) {
+                  return urls.forEach((function(to) {
+                    // to:required
+                    return socket.send(JSON.stringify({
+                      fn: "link",
+                      args: [ url, to.toString() ]
+                    }));
+                  }));
+                } else {
+                  return getAndProcess(socket, url);
+                };
+              })();
+            }));
+          };
+        })();
+      }));
     };
   })();
 });
