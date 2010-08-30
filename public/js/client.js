@@ -66,12 +66,6 @@ jQuery((function(jq) {
       return canvas.attr("height", body.height());
     }))
   ;
-  var pulse = (function(float) {
-    // float:required
-    var amplitude = 0.4;;
-    return (Math.min((1 - amplitude), Math.max(amplitude, float)) + Math.sin(float));
-  });
-  ;
   var draw = (function() {
     if (arguments.length > 0)
       throw new Error("argument count mismatch: expected no arguments");

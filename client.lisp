@@ -44,12 +44,6 @@
 			    (send canvas attr 'width (body.width))
 			    (send canvas attr 'height (body.height)))))
 
-	   (defun pulse (float)
-	     (defvar amplitude 0.4)
-	     (+ (-math.min (- 1 amplitude)
-			(-math.max amplitude float))
-		(-math.sin float)))
-
 	   (defun draw ()
 	     (body.resize)
 	     (context.clear-rect 0 0 (canvas.width) (canvas.height))
