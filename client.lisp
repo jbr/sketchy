@@ -60,8 +60,8 @@
 					  (setf last-point undefined))
 					(context.begin-path)
 					(set context 'stroke-style
-					     (concat "rgba("
-						     (join "," color) ",1"
+					     (concat "rgb("
+						     (join "," color)
 						     ")"))
 					(set context 'line-width
 					     (* 10 (/ i (length user-points))))
@@ -75,7 +75,8 @@
 					(setf last-point point))))))
 
 	   (defremote remove (id)
-	     (delete (get points id)))
+	     (delete (get points id))
+	     (draw))
 
 	   (defremote sync-colors (current-colors)
 	     (setf colors current-colors)

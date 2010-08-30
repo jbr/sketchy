@@ -88,7 +88,7 @@ jQuery((function(jq) {
           };
         })();
         context.beginPath();
-        (context)["strokeStyle"] = ("rgba(" + (color).join(",") + ",1" + ")");;
+        (context)["strokeStyle"] = ("rgb(" + (color).join(",") + ")");;
         (context)["lineWidth"] = (10 * (i / (userPoints)["length"]));;
         var x = (point)[0];;
         var y = (point)[1];;
@@ -106,7 +106,8 @@ jQuery((function(jq) {
   ;
   var remove = (function(id) {
     // id:required
-    return delete (points)[id];
+    delete (points)[id];
+    return draw();
   });
   (remoteCallableFunctions)["remove"] = remove;;
   var syncColors = (function(currentColors) {
