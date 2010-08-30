@@ -64,13 +64,16 @@ jQuery((function(jq) {
       // evt:required
       canvas.attr("width", body.width());
       canvas.attr("height", body.height());
-      return draw();
+      return draw(true);
     }))
   ;
-  var draw = (function() {
-    if (arguments.length > 0)
-      throw new Error("argument count mismatch: expected no arguments");
-    
+  var draw = (function(skipResize) {
+    // skip-resize:required
+    (function() {
+      if ((!skipResize)) {
+        return body.resize();
+      };
+    })();
     context.clearRect(0, 0, canvas.width(), canvas.height());
     return Object.keys(points).forEach((function(key) {
       // key:required

@@ -43,9 +43,10 @@
 		  (resize (lambda (evt)
 			    (send canvas attr 'width (body.width))
 			    (send canvas attr 'height (body.height))
-			    (draw))))
+			    (draw true))))
 
-	   (defun draw ()
+	   (defun draw (skip-resize)
+	     (when (not skip-resize) (body.resize))
 	     (context.clear-rect 0 0 (canvas.width) (canvas.height))
 	     (send (keys points) for-each
 	      (lambda (key)
