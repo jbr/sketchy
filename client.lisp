@@ -46,7 +46,6 @@
 			    (draw))))
 
 	   (defun draw ()
-	     (body.resize)
 	     (context.clear-rect 0 0 (canvas.width) (canvas.height))
 	     (send (keys points) for-each
 	      (lambda (key)

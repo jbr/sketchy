@@ -71,7 +71,6 @@ jQuery((function(jq) {
     if (arguments.length > 0)
       throw new Error("argument count mismatch: expected no arguments");
     
-    body.resize();
     context.clearRect(0, 0, canvas.width(), canvas.height());
     return Object.keys(points).forEach((function(key) {
       // key:required
