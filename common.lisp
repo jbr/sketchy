@@ -1,3 +1,7 @@
+(defmacro thunk (&rest args)
+  (args.unshift (list))
+  (apply macros.lambda args))
+
 (defmacro keys (obj)
   (macros.call "Object.keys" (translate obj)))
 
@@ -26,4 +30,4 @@
 				    'args (apply macros.list args))
 		       ")")))
 
-(defvar *history-length* 100)
+(defvar *history-length* 300)

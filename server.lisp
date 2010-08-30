@@ -6,17 +6,17 @@
 (defvar app           (express.create-server))
 (defvar socket-server (io.listen app))
 
-(app.configure (lambda ()
+(app.configure (thunk
 	 (app.use (express.static-provider
 		   (concat **dirname "/public")))))
 
 (app.configure 'development
-       (lambda ()
+       (thunk
 	 (app.use (express.error-handler
 		   (hash dump-exceptions true
 			 show-stack      true)))))
 
-(app.configure 'production (lambda () (app.use (express.error-handler))))
+(app.configure 'production (thunk (app.use (express.error-handler))))
 
 (app.listen 8888)
 
