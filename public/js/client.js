@@ -63,7 +63,8 @@ jQuery((function(jq) {
     .resize((function(evt) {
       // evt:required
       canvas.attr("width", body.width());
-      return canvas.attr("height", body.height());
+      canvas.attr("height", body.height());
+      return draw();
     }))
   ;
   var draw = (function() {

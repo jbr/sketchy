@@ -42,7 +42,8 @@
 
 		  (resize (lambda (evt)
 			    (send canvas attr 'width (body.width))
-			    (send canvas attr 'height (body.height)))))
+			    (send canvas attr 'height (body.height))
+			    (draw))))
 
 	   (defun draw ()
 	     (body.resize)
