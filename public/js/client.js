@@ -1,4 +1,5 @@
 
+var _historyLength_ = 100;
 
 io.setPath("/client");
 
@@ -14,7 +15,8 @@ var browse = (function(url, from) {
   }));
 });
 
-var cursors = {  };
+var points = {  };
+var colors = {  };
 jQuery((function(jq) {
   // jq:required
   socket.on("message", (function(message) {
@@ -34,13 +36,29 @@ jQuery((function(jq) {
     .getContext("2d")
   ;;
   var body = jq(document.body);;
+  var mouseDown = false;;
+  var newSegment = false;;
   body // chain
+    .mousedown((function(evt) {
+      // evt:required
+      mouseDown = true;;
+      return newSegment = true;;
+    }))
+    .mouseup((function(evt) {
+      // evt:required
+      return mouseDown = false;;
+    }))
     .mousemove((function(evt) {
       // evt:required
-      return socket.send(JSON.stringify({
-        fn: "mouseMove",
-        args: [ evt.clientX, evt.clientY ]
-      }));
+      return (function() {
+        if (mouseDown) {
+          socket.send(JSON.stringify({
+            fn: "mouseMove",
+            args: [ [ evt.clientX, evt.clientY, newSegment ] ]
+          }));
+          return newSegment = false;;
+        };
+      })();
     }))
     .resize((function(evt) {
       // evt:required
@@ -48,52 +66,90 @@ jQuery((function(jq) {
       return canvas.attr("height", body.height());
     }))
   ;
+  var pulse = (function(float) {
+    // float:required
+    var amplitude = 0.4;;
+    return (Math.min((1 - amplitude), Math.max(amplitude, float)) + Math.sin(float));
+  });
+  ;
   var draw = (function() {
     if (arguments.length > 0)
       throw new Error("argument count mismatch: expected no arguments");
     
     body.resize();
     context.clearRect(0, 0, canvas.width(), canvas.height());
-    return Object.keys(cursors).forEach((function(key) {
+    return Object.keys(points).forEach((function(key) {
       // key:required
-      var cursor = (cursors)[key];;
-      context.beginPath();
+      var userPoints = (points)[key];;
       (context)["strokeStyle"] = "black";;
       (context)["lineWidth"] = 1;;
       (context)["lineCap"] = "round";;
-      context.arc((cursor)[0], (cursor)[1], 10, 0, (2 * (Math)["PI"]), false);
-      context.stroke();
-      return Object.keys(cursors).forEach((function(key) {
-        // key:required
-        var otherCursor = (cursors)[key];;
-        return (function() {
-          if ((cursor !== otherCursor)) {
-            context.beginPath();
-            var distance = Math.sqrt((Math.pow(((cursor)[0] - (otherCursor)[0]), 2) + Math.pow(((cursor)[1] - (otherCursor)[1]), 2)));;
-            var strength = Math.min(1, (1 - (distance / 300)));;
-            (context)["strokeStyle"] = ("rgba(0,0,0," + strength + ")");;
-            (context)["lineWidth"] = (10 * strength);;
-            context.moveTo((cursor)[0], (cursor)[1]);
-            context.lineTo((otherCursor)[0], (otherCursor)[1]);
+      var color = (colors)[key];;
+      var lastPoint;;
+      return userPoints.forEach((function(point, i) {
+        // point:required i:required
+        (function() {
+          if ((point)[2]) {
+            return lastPoint = undefined;;
+          };
+        })();
+        context.beginPath();
+        (context)["strokeStyle"] = ("rgba(" + (color).join(",") + ",1" + ")");;
+        (context)["lineWidth"] = (10 * (i / (userPoints)["length"]));;
+        var x = (point)[0];;
+        var y = (point)[1];;
+        (function() {
+          if (typeof(lastPoint) !== "undefined") {
+            context.moveTo((lastPoint)[0], (lastPoint)[1]);
+            context.lineTo(x, y);
             return context.stroke();
           };
         })();
+        return lastPoint = point;;
       }));
     }));
   });
   ;
   var remove = (function(id) {
     // id:required
-    console.log(id);
-    return delete (cursors)[id];
+    return delete (points)[id];
   });
   (remoteCallableFunctions)["remove"] = remove;;
-  var cursorAt = (function(id, x, y) {
-    // id:required x:required y:required
-    (cursors)[id] = [ x, y ];;
+  var syncColors = (function(currentColors) {
+    // current-colors:required
+    colors = currentColors;;
     return draw();
   });
-  (remoteCallableFunctions)["cursorAt"] = cursorAt;;
+  (remoteCallableFunctions)["syncColors"] = syncColors;;
+  var syncPoints = (function(currentPoints) {
+    // current-points:required
+    points = currentPoints;;
+    return draw();
+  });
+  (remoteCallableFunctions)["syncPoints"] = syncPoints;;
+  var syncColor = (function(id, color) {
+    // id:required color:required
+    (colors)[id] = color;;
+    return draw();
+  });
+  (remoteCallableFunctions)["syncColor"] = syncColor;;
+  var addPoint = (function(id, point) {
+    // id:required point:required
+    (function() {
+      if (typeof((points)[id]) === "undefined") {
+        return (points)[id] = [  ];;
+      };
+    })();
+    var currentPoints = (points)[id];;
+    currentPoints.push(point);
+    (function() {
+      if ((currentPoints.length > _historyLength_)) {
+        return (points)[id] = currentPoints.slice((0 - _historyLength_));;
+      };
+    })();
+    return draw();
+  });
+  (remoteCallableFunctions)["addPoint"] = addPoint;;
   return draw();
 }));
 

@@ -26,3 +26,4 @@
 				    'args (apply macros.list args))
 		       ")")))
 
+(defvar *history-length* 100)

@@ -7,8 +7,8 @@
 
 (defvar remote-callable-functions (hash))
 (defun browse (url from) (remote browse url from))
-(defvar cursors (hash))
-
+(defvar points (hash))
+(defvar colors (hash))
 
 (j-query (lambda (jq)
 	   (socket.on 'message
@@ -25,54 +25,84 @@
 	   (defvar canvas (jq 'canvas))
 	   (defvar context (chain (jq 'canvas) (get 0) (get-context "2d")))
 	   (defvar body (jq document.body))
-
+	   (defvar mouse-down false)
+	   (defvar new-segment false)
 	   (chain body
+		  (mousedown (lambda (evt)
+			       (setf mouse-down true)
+			       (setf new-segment true)))
+		  (mouseup   (lambda (evt) (setf mouse-down false)))
 		  (mousemove (lambda (evt)
-			       (remote mouse-move evt.client-x evt.client-y)))
+			       (when mouse-down
+				 (remote mouse-move
+					 (list evt.client-x
+					       evt.client-y
+					       new-segment))
+				 (setf new-segment false))))
 
 		  (resize (lambda (evt)
 			    (send canvas attr 'width (body.width))
 			    (send canvas attr 'height (body.height)))))
 
+	   (defun pulse (float)
+	     (defvar amplitude 0.4)
+	     (+ (-math.min (- 1 amplitude)
+			(-math.max amplitude float))
+		(-math.sin float)))
+
 	   (defun draw ()
 	     (body.resize)
 	     (context.clear-rect 0 0 (canvas.width) (canvas.height))
-	     (send (keys cursors) for-each
+	     (send (keys points) for-each
 	      (lambda (key)
-		(defvar cursor (get cursors key))
-		(context.begin-path)
+		(defvar user-points (get points key))
 		(set context 'stroke-style 'black)
 		(set context 'line-width 1)
 		(set context 'line-cap 'round)
-		(context.arc (first cursor) (second cursor)
-			     10 0 (* 2 (get -math "PI")) false)
-		(context.stroke)
-		(send (keys cursors) for-each
-		      (lambda (key)
-			(defvar other-cursor (get cursors key))
-			(when (!= cursor other-cursor)
-			  (context.begin-path)
-			  (defvar distance
-			    (-math.sqrt (+ (-math.pow (- (first cursor)
-							 (first other-cursor))
-						      2)
-					   (-math.pow (- (second cursor)
-							 (second other-cursor))
-						      2))))
-			  (defvar strength (-math.min 1 (- 1 (/ distance 300))))
-			  (set context 'stroke-style
-			       (concat "rgba(0,0,0," strength ")"))
-			  (set context 'line-width (* 10 strength))
-			  (context.move-to (first cursor) (second cursor))
-			  (context.line-to (first other-cursor) (second other-cursor))
-			  (context.stroke)))))))
+		(defvar color (get colors key))
+		(defvar last-point)
+		(user-points.for-each (lambda (point i)
+					(when (third point)
+					  (setf last-point undefined))
+					(context.begin-path)
+					(set context 'stroke-style
+					     (concat "rgba("
+						     (join "," color) ",1"
+						     ")"))
+					(set context 'line-width
+					     (* 10 (/ i (length user-points))))
+					(defvar x (first point))
+					(defvar y (second point))
+					(when (defined? last-point)
+					  (context.move-to (first last-point)
+							   (second last-point))
+					  (context.line-to x y)
+					  (context.stroke))
+					(setf last-point point))))))
 
 	   (defremote remove (id)
-	     (console.log id)
-	     (delete (get cursors id)))
+	     (delete (get points id)))
 
-	   (defremote cursor-at (id x y)
-	     (set cursors id (list x y))
+	   (defremote sync-colors (current-colors)
+	     (setf colors current-colors)
 	     (draw))
+
+	   (defremote sync-points (current-points)
+	     (setf points current-points)
+	     (draw))
+
+	   (defremote sync-color (id color)
+	     (set colors id color)
+	     (draw))
+
+	   (defremote add-point (id point)
+	     (when (undefined? (get points id))
+	       (set points id (list)))
+	     (defvar current-points (get points id))
+	     (current-points.push point)
+	     (when (> current-points.length *history-length*)
+	       (set points id (current-points.slice (- 0 *history-length*))))
+	     (draw))
+
 	   (draw)))
 

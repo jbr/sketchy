@@ -1,9 +1,7 @@
 (include 'common.lisp)
-(defvar io       (require "socket.io"))
+(defvar io       (require 'socket.io))
 (defvar connect  (require 'connect))
 (defvar express  (require 'express))
-(defvar redis    (send (require "./redis-node-client/lib/redis-client")
-		       create-client))
 
 (defvar app           (express.create-server))
 (defvar socket-server (io.listen app))
@@ -24,13 +22,34 @@
 
 (defvar remote-callable-functions (hash))
 (defvar sockets socket-server.clients-index)
+(defvar points (hash))
+(defvar colors (hash))
+
+(defun random-int (max)
+  (-math.floor (* max (-math.random))))
+
+(defun random-color ()
+  (list (random-int 255) (random-int 255) (random-int 255)))
 
 (socket-server.on 'connection
 		  (lambda (socket)
+		    (defvar socket-id socket.session-id)
+
+		    (set colors socket-id (random-color))
+		    (remote sync-colors colors)
+
+		    (set points socket-id (list))
+		    (remote sync-points points)
+
+		    (broadcast (lambda (socket)
+				 (remote sync-color socket-id
+					 (get colors socket-id))))
+
 		    (socket.on 'message
 			       (lambda (message)
 				 (defvar message (json parse message))
-				 (defvar fn (get remote-callable-functions message.fn))
+				 (defvar fn (get remote-callable-functions
+						 message.fn))
 				 (defvar args (get message 'args))
 				 (when (and (defined? args) (defined? fn))
 				   (args.unshift socket)
@@ -38,10 +57,11 @@
 
 		    (socket.on 'disconnect
 			       (lambda (&rest args)
-				 (defvar departing-id socket.session-id)
 				 (broadcast (lambda (socket)
-					      (remote remove departing-id)))
-				 (delete sockets socket.session-id)))))
+					      (remote remove socket-id)))
+				 (delete (get points  socket-id))
+				 (delete (get colors  socket-id))
+				 (delete (get sockets socket-id))))))
 
 (defun broadcast (fn)
   (send (keys sockets) for-each
@@ -49,8 +69,16 @@
 	  (defvar socket (get sockets session-id))
 	  (when socket (fn socket)))))
 
+(defun add-point (id point)
+  (when (undefined? (get points id))
+    (set points id (list)))
+  (defvar current-points (get points id))
+  (current-points.push point)
+  (when (> current-points.length *history-length*)
+    (set points id (current-points.slice (- 0 *history-length*)))))
 
-(defremote mouse-move (originating-socket x y)
+(defremote mouse-move (originating-socket x y new-segment)
+  (add-point originating-socket.session-id x y new-segment)
   (broadcast (lambda (socket)
-	       (remote cursor-at originating-socket.session-id x y))))
+	       (remote add-point originating-socket.session-id x y new-segment))))
 
