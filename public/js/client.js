@@ -1,5 +1,5 @@
 
-var _historyLength_ = 300;
+var _historyLength_ = 500;
 
 io.setPath("/client");
 
