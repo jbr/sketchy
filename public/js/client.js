@@ -68,7 +68,7 @@ jQuery((function(jq) {
     }))
   ;
   var draw = (function(skipResize) {
-    // skip-resize:required
+    // skipResize:required
     (function() {
       if ((!skipResize)) {
         return body.resize();
@@ -82,7 +82,7 @@ jQuery((function(jq) {
       (context)["lineWidth"] = 1;;
       (context)["lineCap"] = "round";;
       var color = (colors)[key];;
-      var lastPoint;;
+      var lastPoint = undefined;;
       return userPoints.forEach((function(point, i) {
         // point:required i:required
         (function() {
@@ -114,13 +114,13 @@ jQuery((function(jq) {
   });
   (remoteCallableFunctions)["remove"] = remove;;
   var syncColors = (function(currentColors) {
-    // current-colors:required
+    // currentColors:required
     colors = currentColors;;
     return draw();
   });
   (remoteCallableFunctions)["syncColors"] = syncColors;;
   var syncPoints = (function(currentPoints) {
-    // current-points:required
+    // currentPoints:required
     points = currentPoints;;
     return draw();
   });

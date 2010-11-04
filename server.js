@@ -100,7 +100,7 @@ socketServer.on("connection", (function(socket) {
 var broadcast = (function(fn) {
   // fn:required
   return Object.keys(sockets).forEach((function(sessionId) {
-    // session-id:required
+    // sessionId:required
     var socket = (sockets)[sessionId];;
     return (function() {
       if (socket) {
@@ -127,7 +127,7 @@ var addPoint = (function(id, point) {
 });
 
 var mouseMove = (function(originatingSocket, x, y, newSegment) {
-  // originating-socket:required x:required y:required new-segment:required
+  // originatingSocket:required x:required y:required newSegment:required
   addPoint(originatingSocket.sessionId, x, y, newSegment);
   return broadcast((function(socket) {
     // socket:required
