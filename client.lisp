@@ -65,7 +65,7 @@
 						     (join "," color)
 						     ")"))
 					(set context 'line-width
-					     (* 10 (/ i (length user-points))))
+					     (* 5 (/ i (length user-points))))
 					(defvar x (first point))
 					(defvar y (second point))
 					(when (defined? last-point)

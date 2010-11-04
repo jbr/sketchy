@@ -30,4 +30,4 @@
 				    'args (apply macros.list args))
 		       ")")))
 
-(defvar *history-length* 500)
+(defvar *history-length* 750)

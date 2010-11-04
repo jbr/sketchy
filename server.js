@@ -1,5 +1,5 @@
 
-var _historyLength_ = 500;
+var _historyLength_ = 750;
 
 var io = require("socket.io");
 var connect = require("connect");

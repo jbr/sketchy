@@ -1,5 +1,5 @@
 
-var _historyLength_ = 500;
+var _historyLength_ = 750;
 
 io.setPath("/client");
 
@@ -92,7 +92,7 @@ jQuery((function(jq) {
         })();
         context.beginPath();
         (context)["strokeStyle"] = ("rgb(" + (color).join(",") + ")");;
-        (context)["lineWidth"] = (10 * (i / (userPoints)["length"]));;
+        (context)["lineWidth"] = (5 * (i / (userPoints)["length"]));;
         var x = (point)[0];;
         var y = (point)[1];;
         (function() {
