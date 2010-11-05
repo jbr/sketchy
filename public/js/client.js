@@ -41,8 +41,9 @@ jQuery((function(jq) {
   body // chain
     .mousedown((function(evt) {
       // evt:required
-      mouseDown = true;;
-      return newSegment = true;;
+      mouseDown = true;
+      newSegment = true;;
+      return true;
     }))
     .mouseup((function(evt) {
       // evt:required
@@ -77,12 +78,12 @@ jQuery((function(jq) {
     context.clearRect(0, 0, canvas.width(), canvas.height());
     return Object.keys(points).forEach((function(key) {
       // key:required
-      var userPoints = (points)[key];;
-      (context)["strokeStyle"] = "black";;
-      (context)["lineWidth"] = 1;;
-      (context)["lineCap"] = "round";;
-      var color = (colors)[key],
+      var userPoints = (points)[key],
+          color = (colors)[key],
           lastPoint = undefined;;
+      (context)["strokeStyle"] = "black";
+      (context)["lineWidth"] = 1;
+      (context)["lineCap"] = "round";;
       return userPoints.forEach((function(point, i) {
         // point:required i:required
         (function() {
@@ -93,8 +94,8 @@ jQuery((function(jq) {
         context.beginPath();
         (context)["strokeStyle"] = ("rgb(" + (color).join(",") + ")");;
         (context)["lineWidth"] = (5 * (i / (userPoints)["length"]));;
-        var x = (point)[0];;
-        var y = (point)[1];;
+        var x = (point)[0],
+            y = (point)[1];;
         (function() {
           if (typeof(lastPoint) !== "undefined") {
             context.moveTo((lastPoint)[0], (lastPoint)[1]);

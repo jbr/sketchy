@@ -30,8 +30,9 @@
 
 	   (chain body
 		  (mousedown (lambda (evt)
-			       (setf mouse-down true)
-			       (setf new-segment true)))
+			       (setf mouse-down true
+				     new-segment true)
+			       true))
 		  (mouseup   (lambda (evt) (setf mouse-down false)))
 		  (mousemove (lambda (evt)
 			       (when mouse-down
@@ -50,17 +51,17 @@
 	     (when (not skip-resize) (body.resize))
 	     (context.clear-rect 0 0 (canvas.width) (canvas.height))
 	     (each (key) (keys points)
-		   (defvar user-points (get points key))
-		   (set context 'stroke-style 'black)
-		   (set context 'line-width 1)
-		   (set context 'line-cap 'round)
-
-		   (defvar color (get colors key)
+		   (defvar user-points (get points key)
+		     color (get colors key)
 		     last-point undefined)
 
+		   (set context
+			'stroke-style 'black
+			'line-width 1
+			'line-cap 'round)
+
 		   (each (point i) user-points
-			 (when (third point)
-			   (setf last-point undefined))
+			 (when (third point) (setf last-point undefined))
 			 (context.begin-path)
 			 (set context 'stroke-style
 			      (concat "rgb("
@@ -68,8 +69,8 @@
 				      ")"))
 			 (set context 'line-width
 			      (* 5 (/ i (length user-points))))
-			 (defvar x (first point))
-			 (defvar y (second point))
+			 (defvar x (first point)
+			   y (second point))
 			 (when (defined? last-point)
 			   (context.move-to (first last-point)
 					    (second last-point))
