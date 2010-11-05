@@ -1,11 +1,11 @@
 
 var _historyLength_ = 750;
 
-var io = require("socket.io");
-var connect = require("connect");
-var express = require("express");
-var app = express.createServer();
-var socketServer = io.listen(app);
+var io = require("socket.io"),
+    connect = require("connect"),
+    express = require("express"),
+    app = express.createServer(),
+    socketServer = io.listen(app);
 app.configure((function() {
   if (arguments.length > 0)
     throw new Error("argument count mismatch: expected no arguments");
@@ -32,10 +32,10 @@ app.configure("production", (function() {
 
 app.listen(8888);
 
-var remoteCallableFunctions = {  };
-var sockets = socketServer.clientsIndex;
-var points = {  };
-var colors = {  };
+var remoteCallableFunctions = {  },
+    sockets = socketServer.clientsIndex,
+    points = {  },
+    colors = {  };
 var randomInt = (function(max) {
   // max:required
   return Math.floor((max * Math.random()));

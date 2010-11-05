@@ -1,4 +1,4 @@
-(include "common.lisp")
+(include 'common.lisp)
 
 (io.set-path "/client")
 
@@ -7,26 +7,27 @@
 
 (defvar remote-callable-functions (hash))
 (defun browse (url from) (remote browse url from))
-(defvar points (hash))
-(defvar colors (hash))
+(defvar points (hash)
+  color (hash))
 
 (j-query (lambda (jq)
 	   (socket.on 'message
 		      (lambda (message)
-			(defvar message (json parse message))
-			(defvar fn (get remote-callable-functions message.fn))
-			(defvar args (get message 'args))
+			(defvar message (json parse message)
+			  fn (get remote-callable-functions message.fn)
+			  args (get message 'args))
 
 			(when (and (defined? args)
 				   (array? args)
 				   (defined? fn))
 			  (apply fn args))))
 
-	   (defvar canvas (jq 'canvas))
-	   (defvar context (chain (jq 'canvas) (get 0) (get-context "2d")))
-	   (defvar body (jq document.body))
-	   (defvar mouse-down false)
-	   (defvar new-segment false)
+	   (defvar canvas (jq 'canvas)
+	     context (chain canvas (get 0) (get-context "2d"))
+	     body (jq document.body)
+	     mouse-down false
+	     new-segment false)
+
 	   (chain body
 		  (mousedown (lambda (evt)
 			       (setf mouse-down true)
@@ -48,32 +49,33 @@
 	   (defun draw (skip-resize)
 	     (when (not skip-resize) (body.resize))
 	     (context.clear-rect 0 0 (canvas.width) (canvas.height))
-	     (send (keys points) for-each
-	      (lambda (key)
-		(defvar user-points (get points key))
-		(set context 'stroke-style 'black)
-		(set context 'line-width 1)
-		(set context 'line-cap 'round)
-		(defvar color (get colors key))
-		(defvar last-point)
-		(user-points.for-each (lambda (point i)
-					(when (third point)
-					  (setf last-point undefined))
-					(context.begin-path)
-					(set context 'stroke-style
-					     (concat "rgb("
-						     (join "," color)
-						     ")"))
-					(set context 'line-width
-					     (* 5 (/ i (length user-points))))
-					(defvar x (first point))
-					(defvar y (second point))
-					(when (defined? last-point)
-					  (context.move-to (first last-point)
-							   (second last-point))
-					  (context.line-to x y)
-					  (context.stroke))
-					(setf last-point point))))))
+	     (each (key) (keys points)
+		   (defvar user-points (get points key))
+		   (set context 'stroke-style 'black)
+		   (set context 'line-width 1)
+		   (set context 'line-cap 'round)
+
+		   (defvar color (get colors key)
+		     last-point undefined)
+
+		   (each (point i) user-points
+			 (when (third point)
+			   (setf last-point undefined))
+			 (context.begin-path)
+			 (set context 'stroke-style
+			      (concat "rgb("
+				      (join "," color)
+				      ")"))
+			 (set context 'line-width
+			      (* 5 (/ i (length user-points))))
+			 (defvar x (first point))
+			 (defvar y (second point))
+			 (when (defined? last-point)
+			   (context.move-to (first last-point)
+					    (second last-point))
+			   (context.line-to x y)
+			   (context.stroke))
+			 (setf last-point point))))
 
 	   (defremote remove (id)
 	     (delete (get points id))

@@ -15,29 +15,29 @@ var browse = (function(url, from) {
   }));
 });
 
-var points = {  };
-var colors = {  };
+var points = {  },
+    color = {  };
 jQuery((function(jq) {
   // jq:required
   socket.on("message", (function(message) {
     // message:required
-    var message = JSON.parse(message);;
-    var fn = (remoteCallableFunctions)[message.fn];;
-    var args = (message)["args"];;
+    var message = JSON.parse(message),
+        fn = (remoteCallableFunctions)[message.fn],
+        args = (message)["args"];;
     return (function() {
       if ((typeof(args) !== "undefined" && (args) && (args).constructor.name === "Array" && typeof(fn) !== "undefined")) {
         return fn.apply(undefined, args);
       };
     })();
   }));
-  var canvas = jq("canvas");;
-  var context = jq("canvas") // chain
+  var canvas = jq("canvas"),
+      context = canvas // chain
     .get(0)
     .getContext("2d")
-  ;;
-  var body = jq(document.body);;
-  var mouseDown = false;;
-  var newSegment = false;;
+  ,
+      body = jq(document.body),
+      mouseDown = false,
+      newSegment = false;;
   body // chain
     .mousedown((function(evt) {
       // evt:required
@@ -81,8 +81,8 @@ jQuery((function(jq) {
       (context)["strokeStyle"] = "black";;
       (context)["lineWidth"] = 1;;
       (context)["lineCap"] = "round";;
-      var color = (colors)[key];;
-      var lastPoint = undefined;;
+      var color = (colors)[key],
+          lastPoint = undefined;;
       return userPoints.forEach((function(point, i) {
         // point:required i:required
         (function() {

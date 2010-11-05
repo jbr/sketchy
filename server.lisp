@@ -1,29 +1,29 @@
 (include 'common.lisp)
-(defvar io       (require 'socket.io))
-(defvar connect  (require 'connect))
-(defvar express  (require 'express))
 
-(defvar app           (express.create-server))
-(defvar socket-server (io.listen app))
+(defvar io      (require 'socket.io)
+  connect       (require 'connect)
+  express       (require 'express)
+  app           (express.create-server)
+  socket-server (io.listen app))
 
 (app.configure (thunk
-	 (app.use (express.static-provider
-		   (concat **dirname "/public")))))
+		(app.use (express.static-provider
+			  (concat **dirname "/public")))))
 
 (app.configure 'development
-       (thunk
-	 (app.use (express.error-handler
-		   (hash dump-exceptions true
-			 show-stack      true)))))
+	       (thunk
+		(app.use (express.error-handler
+			  (hash dump-exceptions true
+				show-stack      true)))))
 
 (app.configure 'production (thunk (app.use (express.error-handler))))
 
 (app.listen 8888)
 
-(defvar remote-callable-functions (hash))
-(defvar sockets socket-server.clients-index)
-(defvar points (hash))
-(defvar colors (hash))
+(defvar remote-callable-functions (hash)
+  sockets socket-server.clients-index
+  points (hash)
+  colors (hash))
 
 (defun random-int (max)
   (-math.floor (* max (-math.random))))
@@ -64,10 +64,9 @@
 				 (delete (get sockets socket-id))))))
 
 (defun broadcast (fn)
-  (send (keys sockets) for-each
-	(lambda (session-id)
-	  (defvar socket (get sockets session-id))
-	  (when socket (fn socket)))))
+  (each (session-id) (keys sockets)
+	(defvar socket (get sockets session-id))
+	(when socket (fn socket))))
 
 (defun add-point (id point)
   (when (undefined? (get points id))
