@@ -1,38 +1,59 @@
+var _historyLength_ = 750,
+    json = JSON;
 
-var _historyLength_ = 750;
-
-var io = require("socket.io"),
-    connect = require("connect"),
-    express = require("express"),
-    app = express.createServer(),
-    socketServer = io.listen(app);
-app.configure((function() {
-  if (arguments.length > 0)
-    throw new Error("argument count mismatch: expected no arguments");
-  
-  return app.use(express.staticProvider((__dirname + "/public")));
-}));
-
-app.configure("development", (function() {
-  if (arguments.length > 0)
-    throw new Error("argument count mismatch: expected no arguments");
-  
-  return app.use(express.errorHandler({
-    dumpExceptions: true,
-    showStack: true
+var io = require("./socket.io"),
+    path = require("path"),
+    fs = require("fs"),
+    url = require("url"),
+    http = require("http");
+var serveFile = (function(fileName, response) {
+  // fileName:required response:required
+  var contentType = (function() {
+    switch(path.extname(fileName)) {
+    case ".html":
+      return "text/html";
+    
+    case ".css":
+      return "text/css";
+    
+    case ".js":
+      return "text/javascript";
+    }
+  })();;
+  return fs.readFile((__dirname + "/public/" + fileName), (function(err, data) {
+    // err:required data:required
+    return (function() {
+      if (err) {
+        response.writeHead(404);
+        response.write("404");
+        return response.end();;
+      } else {
+        console.log(fileName, contentType);
+        response.writeHead(200, { "Content-Type": contentType });
+        response.write(data, "utf8");
+        return response.end();;
+      };
+    })();
   }));
+});
+
+var server = http.createServer((function(request, response) {
+  // request:required response:required
+  var path = (url.parse(request.url))["pathname"];;
+  return (function() {
+    switch(path) {
+    case "/":
+      return serveFile("index.html", response);
+    
+    default:
+      return serveFile(path, response);
+    }
+  })();
 }));
+server.listen(8888);
 
-app.configure("production", (function() {
-  if (arguments.length > 0)
-    throw new Error("argument count mismatch: expected no arguments");
-  
-  return app.use(express.errorHandler());
-}));
-
-app.listen(8888);
-
-var remoteCallableFunctions = {  },
+var socketServer = io.listen(server),
+    remoteCallableFunctions = {  },
     sockets = socketServer.clientsIndex,
     points = {  },
     colors = {  };
@@ -42,9 +63,6 @@ var randomInt = (function(max) {
 });
 
 var randomColor = (function() {
-  if (arguments.length > 0)
-    throw new Error("argument count mismatch: expected no arguments");
-  
   return [ randomInt(255), randomInt(255), randomInt(255) ];
 });
 
@@ -70,11 +88,11 @@ socketServer.on("connection", (function(socket) {
   }));
   socket.on("message", (function(message) {
     // message:required
-    var message = JSON.parse(message);;
+    var message = json.parse(message);;
     var fn = (remoteCallableFunctions)[message.fn];;
     var args = (message)["args"];;
     return (function() {
-      if ((typeof(args) !== "undefined" && typeof(fn) !== "undefined")) {
+      if ((typeof(args) !== 'undefined' && typeof(fn) !== 'undefined')) {
         args.unshift(socket);
         return fn.apply(undefined, args);
       };
@@ -93,7 +111,7 @@ socketServer.on("connection", (function(socket) {
     }));
     delete (points)[socketId];
     delete (colors)[socketId];
-    return delete (sockets)[socketId];
+    return delete (sockets)[socketId];;
   }));
 }));
 
@@ -113,7 +131,7 @@ var broadcast = (function(fn) {
 var addPoint = (function(id, point) {
   // id:required point:required
   (function() {
-    if (typeof((points)[id]) === "undefined") {
+    if (typeof((points)[id]) === 'undefined') {
       return (points)[id] = [  ];;
     };
   })();

@@ -1,41 +1,37 @@
+var _historyLength_ = 750,
+    json = JSON;
 
-var _historyLength_ = 750;
-
-io.setPath("/client");
-
-var socket = (new io.Socket(null, { port: 8888 }));
-socket.connect();
-
-var remoteCallableFunctions = {  };
-var browse = (function(url, from) {
-  // url:required from:required
-  return socket.send(JSON.stringify({
-    fn: "browse",
-    args: [ url, from ]
-  }));
-});
-
-var points = {  },
-    color = {  };
-jQuery((function(jq) {
-  // jq:required
+$((function() {
+  var socket = (new io.Socket(null, { port: 8888 })),
+      remoteCallableFunctions = {  },
+      points = {  },
+      color = {  };;
+  socket.connect();
+  var browse = (function(url, from) {
+    // url:required from:required
+    return socket.send(JSON.stringify({
+      fn: "browse",
+      args: [ url, from ]
+    }));
+  });
+  ;
   socket.on("message", (function(message) {
     // message:required
-    var message = JSON.parse(message),
+    var message = json.parse(message),
         fn = (remoteCallableFunctions)[message.fn],
         args = (message)["args"];;
     return (function() {
-      if ((typeof(args) !== "undefined" && (args) && (args).constructor.name === "Array" && typeof(fn) !== "undefined")) {
+      if ((typeof(args) !== 'undefined' && (args) && (args).constructor.name === "Array" && typeof(fn) !== 'undefined')) {
         return fn.apply(undefined, args);
       };
     })();
   }));
-  var canvas = jq("canvas"),
+  var canvas = $("canvas"),
       context = canvas // chain
     .get(0)
     .getContext("2d")
   ,
-      body = jq(document.body),
+      body = $(document.body),
       mouseDown = false,
       newSegment = false;;
   body // chain
@@ -68,7 +64,7 @@ jQuery((function(jq) {
       return draw(true);
     }))
   ;
-  var draw = (function(skipResize) {
+  window.draw = (function(skipResize) {
     // skipResize:required
     (function() {
       if ((!skipResize)) {
@@ -92,12 +88,12 @@ jQuery((function(jq) {
           };
         })();
         context.beginPath();
-        (context)["strokeStyle"] = ("rgb(" + (color).join(",") + ")");;
+        (context)["strokeStyle"] = ("rgb(" + (color).join(",") + ")");
         (context)["lineWidth"] = (5 * (i / (userPoints)["length"]));;
         var x = (point)[0],
             y = (point)[1];;
         (function() {
-          if (typeof(lastPoint) !== "undefined") {
+          if (typeof(lastPoint) !== 'undefined') {
             context.moveTo((lastPoint)[0], (lastPoint)[1]);
             context.lineTo(x, y);
             return context.stroke();
@@ -108,9 +104,10 @@ jQuery((function(jq) {
     }));
   });
   ;
+  var draw = window.draw;;
   var remove = (function(id) {
     // id:required
-    delete (points)[id];
+    delete (points)[id];;
     return draw();
   });
   (remoteCallableFunctions)["remove"] = remove;;
@@ -135,7 +132,7 @@ jQuery((function(jq) {
   var addPoint = (function(id, point) {
     // id:required point:required
     (function() {
-      if (typeof((points)[id]) === "undefined") {
+      if (typeof((points)[id]) === 'undefined') {
         return (points)[id] = [  ];;
       };
     })();

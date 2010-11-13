@@ -1,32 +1,48 @@
 (include 'common.lisp)
 
-(defvar io      (require 'socket.io)
-  connect       (require 'connect)
-  express       (require 'express)
-  app           (express.create-server)
-  socket-server (io.listen app))
+(defvar io      (require "./socket.io")
+        path    (require 'path)
+        fs      (require 'fs)
+        url     (require 'url)
+        http    (require 'http))
 
-(app.configure (thunk
-		(app.use (express.static-provider
-			  (concat **dirname "/public")))))
 
-(app.configure 'development
-	       (thunk
-		(app.use (express.error-handler
-			  (hash dump-exceptions true
-				show-stack      true)))))
+(defun serve-file (file-name response)
+  (defvar content-type (switch (path.extname file-name)
+                               (".html" "text/html")
+                               (".css"  "text/css")
+                               (".js"   "text/javascript")))
 
-(app.configure 'production (thunk (app.use (express.error-handler))))
 
-(app.listen 8888)
+  (fs.read-file (concat **dirname "/public/" file-name)
+     (lambda (err data)
+       (if err
+           (progn
+             (response.write-head 404)
+             (response.write "404")
+             (response.end))
+         (progn
+           (response.write-head 200
+                                (hash "Content-Type" content-type))
+           (response.write data, 'utf8)
+           (response.end))))))
+     
+(defvar server (http.create-server (lambda (request response)
+  (defvar path (get (url.parse request.url) 'pathname))
+  (switch path
+          ("/" (serve-file 'index.html response))
+          (default (serve-file path response))))))
 
-(defvar remote-callable-functions (hash)
-  sockets socket-server.clients-index
-  points (hash)
-  colors (hash))
+(server.listen 8888)
 
-(defun random-int (max)
-  (-math.floor (* max (-math.random))))
+
+(defvar socket-server             (io.listen server)
+        remote-callable-functions (hash)
+        sockets                   socket-server.clients-index
+        points                    (hash)
+        colors                    (hash))
+
+(defun random-int (max) (-math.floor (* max (-math.random))))
 
 (defun random-color ()
   (list (random-int 255) (random-int 255) (random-int 255)))
@@ -47,7 +63,7 @@
 
 		    (socket.on 'message
 			       (lambda (message)
-				 (defvar message (json parse message))
+				 (defvar message (json.parse message))
 				 (defvar fn (get remote-callable-functions
 						 message.fn))
 				 (defvar args (get message 'args))
@@ -59,9 +75,9 @@
 			       (lambda (&rest args)
 				 (broadcast (lambda (socket)
 					      (remote remove socket-id)))
-				 (delete (get points  socket-id))
-				 (delete (get colors  socket-id))
-				 (delete (get sockets socket-id))))))
+				 (delete (get points  socket-id)
+                                         (get colors  socket-id)
+                                         (get sockets socket-id))))))
 
 (defun broadcast (fn)
   (each (session-id) (keys sockets)
