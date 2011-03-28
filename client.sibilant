@@ -1,4 +1,4 @@
-(include 'common.lisp)
+(include "./common")
 
 ($ (thunk
   (defvar socket                    (new (io.-socket null (hash port 8888)))
